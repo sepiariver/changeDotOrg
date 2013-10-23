@@ -22,7 +22,7 @@
  * @package changedotorg
 */
 
-class changeDotOrg {
+class ChangeDotOrg {
     /**
      * @var modX|null $modx
      */
@@ -36,7 +36,7 @@ class changeDotOrg {
      */
     public $debug = false;
 
-
+    public $apiKey = $modx->getOption('changedotorg_api_key');
     /**
      * @param \modX $modx
      * @param array $config
@@ -44,7 +44,7 @@ class changeDotOrg {
     function __construct(modX &$modx,array $config = array()) {
         $this->modx =& $modx;
 
-        $corePath = $this->modx->getOption('core_path').'components/changedotorg/');
+        $corePath = $this->modx->getOption('core_path').'components/changedotorg/';
         $this->config = array_merge(array(
             'basePath' => $corePath,
             'corePath' => $corePath,
@@ -72,13 +72,13 @@ class changeDotOrg {
         $data = $this->modx->getCacheManager()->get($requested, $cacheOptions);
 
         if (empty($data)) {
-          $id = $this->getPetitionId($modx->getOption('changedotorg_petition_url');
+          $id = $this->getPetitionId($modx->getOption('changedotorg_petition_url'));
           $apiUrl = 'https://api.change.org/v1/petitions/' 
             . $id 
             . '/'
             . $requested
             . '?api_key=' 
-            . $this->getApiKey($modx->getOption('changedotorg_api_key');
+            . $apiKey;
             
           $response = file_get_contents($apiUrl);
           $data = $modx->fromJSON($response);
@@ -87,6 +87,57 @@ class changeDotOrg {
         }
 
         return $data;
+    }
+    /**
+     * Grab petitionId.
+     * @return string
+     */
+    public function getPetitionId($url) {
+      //First check if the setting exists
+      $setting = $modx->getObject('modSystemSetting', 'changedotorg_petition_id');
+      // Create the System Setting if it doesn't exist
+      if (!$setting) {
+        $newSetting = $modx->newObject('modSystemSetting');
+        $newSetting->set('key', 'changedotorg_petition_id');
+        $newSetting->set('xtype', 'textfield');
+        $newSetting->set('namespace', 'changedotorg');
+        $newSetting->set('area', 'Petition');
+ 
+        $newSetting->save();
+        $setting = $modx->getObject('modSystemSetting', 'changedotorg_petition_id');
+      }
+
+      // API requirements
+      $apiUrl = 'https://api.change.org/v1/petitions/get_id';
+      $petitionUrl = $modx->getOption('changeorg_petition_url',null,'');
+      if (!$petitionUrl) return false;
+    
+      // Build query
+      $params = array(
+        'api_key' => $apiKey,
+        'petition_url' => $petitionUrl
+      );
+      $query = http_build_query($params);
+    
+      // Request
+      $requestUrl = "$apiUrl?$query";
+    
+      // Response
+      $response = file_get_contents($requestUrl);
+      $petition = $modx->fromJSON($response);
+    
+      // Get petition ID
+      $petitionId = $petition['petition_id'];
+    
+      // Save it in System Setting
+      $setting->set('value', $petitionId);
+      $setting->save();
+     
+      // Clear the cache:
+      $cacheRefreshOptions =  array( 'system_settings' => array() );
+      $modx->cacheManager->refresh($cacheRefreshOptions);       
+
+      return $petitionId;
     }
 
     /**
