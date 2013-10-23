@@ -59,26 +59,34 @@ class changeDotOrg {
     }
 
     /**
-     * Grab settings (from cache if possible) as key => value pairs.
+     * Grab response data (from cache if possible).
      * @return array|mixed
      */
-    public function getSettings($criteria = NULL, $cacheId = 'clientconfig', $cacheKey = 'system_settings') {
+    public function getPetitionData($requested = 'signatures', $cacheExpires = 7200) {
         /* Attempt to get from cache */
-        $cacheOptions = array(xPDO::OPT_CACHE_KEY => $cacheKey);
-        $settings = $this->modx->getCacheManager()->get($cacheId, $cacheOptions);
+        $cacheOptions = array(
+          xPDO::OPT_CACHE_HANDLER => $modx->getOption('cache_handler'),
+          xPDO::OPT_CACHE_KEY => $modx->getOption('changedotorg_cache_key',null,'changedotorg'),
+          xPDO::OPT_CACHE_EXPIRES => $cacheExpires,
+        );
+        $data = $this->modx->getCacheManager()->get($requested, $cacheOptions);
 
-        if (empty($settings) && $this->modx->getCount('cgSetting') > 0) {
-            $collection = $this->modx->getCollection('cgSetting', $criteria);
-            $settings = array();
-            /* @var cgSetting $setting */
-            foreach ($collection as $setting) {
-                $settings[$setting->get('key')] = $setting->get('value');
-            }
+        if (empty($data)) {
+          $id = $this->getPetitionId($modx->getOption('changedotorg_petition_url');
+          $apiUrl = 'https://api.change.org/v1/petitions/' 
+            . $id 
+            . '/'
+            . $requested
+            . '?api_key=' 
+            . $this->getApiKey($modx->getOption('changedotorg_api_key');
+            
+          $response = file_get_contents($apiUrl);
+          $data = $modx->fromJSON($response);
             /* Write to cache again */
-            $this->modx->cacheManager->set($cacheId, $settings, 0, $cacheOptions);
+          $this->modx->cacheManager->set($requested, $data, $cacheOptions);
         }
 
-        return (is_array($settings)) ? $settings : array();
+        return $data;
     }
 
     /**
