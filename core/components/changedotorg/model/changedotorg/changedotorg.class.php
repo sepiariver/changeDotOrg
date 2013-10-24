@@ -61,7 +61,7 @@ class ChangeDotOrg {
      */
     public function getPetitionData($id, $apiKey, $requested = 'signatures', $cacheExpires = '7200') {
         /* Attempt to get from cache */
-        $cacheId = $requested . '.' . $id;
+        $cacheId = $requested . $id;
         $cacheOptions = array(
           xPDO::OPT_CACHE_HANDLER => $this->modx->getOption('cache_handler'),
           xPDO::OPT_CACHE_KEY => $this->modx->getOption('changedotorg_cache_key',null,'changedotorg'),
