@@ -4,6 +4,11 @@
  *
  * Returns changeDotOrg petition data. 
  *
+ * [[changeDotOrg]]
+ * returns: signature count.
+ *
+ * [[changeDotOrg?from=`reasons`]]
+ * returns: 
  * 
  */
 
@@ -13,8 +18,9 @@ if(empty($apiKey)) return 'API key is required in system settings.';
 
 // Settings
 $from = $modx->getOption('from',$scriptProperties,'signatures');
-$get = $modx->getOption('get',$scriptProperties,'signature_count');
-$tpl = $modx->getOption('tpl',$scriptProperties,'reasonsTpl');
+$default = ($from === 'signatures') ? 'signature_count' : $from;
+$get = $modx->getOption('get',$scriptProperties,$default);
+$tpl = $modx->getOption('tpl',$scriptProperties,'changeDotOrg-' . $from . 'Tpl');
 $limit = $modx->getOption('limit',$scriptProperties,5);
 $offset = $modx->getOption('offset',$scriptProperties,0);
 $random = $modx->getOption('random',$scriptProperties,false);
@@ -43,9 +49,11 @@ if ($cdo instanceof ChangeDotOrg) {
   return 'Failed to get required ChangeDotOrg class.';
 }
 
-// Prepare to output
 // Return stuff
-$results = $requestedData[$get];
+if (!$requestedData) return 'Failed to get data.';
+if ($from === 'targets') { $results = $requestedData; }
+else { $results = $requestedData[$get]; }
+
 $i=0;
 $c=0;
 if (is_array($results)) {
