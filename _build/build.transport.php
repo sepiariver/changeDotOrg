@@ -21,10 +21,10 @@ set_time_limit(0);
 
 if (!defined('MOREPROVIDER_BUILD')) {
     /* define version */
-    define('PKG_NAME','ClientConfig');
+    define('PKG_NAME','changeDotOrg');
     define('PKG_NAME_LOWER',strtolower(PKG_NAME));
-    define('PKG_VERSION','1.3.1');
-    define('PKG_RELEASE','dev1');
+    define('PKG_VERSION','1.0.0');
+    define('PKG_RELEASE','beta1');
 
     /* load modx */
     require_once dirname(dirname(__FILE__)) . '/config.core.php';
@@ -87,29 +87,6 @@ foreach ($settings as $setting) {
 $modx->log(modX::LOG_LEVEL_INFO,'Packaged in '.count($settings).' system settings.'); flush();
 unset($settings,$setting,$attributes);
 
-/* add plugins */
-$plugins = include $sources['data'].'transport.plugins.php';
-if (!is_array($plugins)) { $modx->log(modX::LOG_LEVEL_FATAL,'Adding plugins failed.'); }
-$attributes= array(
-    xPDOTransport::UNIQUE_KEY => 'name',
-    xPDOTransport::PRESERVE_KEYS => false,
-    xPDOTransport::UPDATE_OBJECT => true,
-    xPDOTransport::RELATED_OBJECTS => true,
-    xPDOTransport::RELATED_OBJECT_ATTRIBUTES => array (
-        'PluginEvents' => array(
-            xPDOTransport::PRESERVE_KEYS => true,
-            xPDOTransport::UPDATE_OBJECT => true,
-            xPDOTransport::UNIQUE_KEY => array('pluginid','event'),
-        ),
-    ),
-);
-foreach ($plugins as $plugin) {
-    $vehicle = $builder->createVehicle($plugin, $attributes);
-    $builder->putVehicle($vehicle);
-}
-$modx->log(modX::LOG_LEVEL_INFO,'Packaged in '.count($plugins).' plugins.'); flush();
-unset($plugins,$plugin,$attributes);
-
 /* add snippets */
 $snippets = include $sources['data'].'transport.snippets.php';
 if (!is_array($snippets)) { $modx->log(modX::LOG_LEVEL_FATAL,'Adding snippets failed.'); }
@@ -125,23 +102,7 @@ foreach ($snippets as $snippet) {
 $modx->log(modX::LOG_LEVEL_INFO,'Packaged in '.count($snippets).' snippets.'); flush();
 unset($snippets,$snippet,$attributes);
 
-/* Add actions */
-require_once ($sources['data'].'transport.actions.php');
-$modx->log(modX::LOG_LEVEL_INFO,'Packaged in actions');
 
-$attr = array(
-    xPDOTransport::UNIQUE_KEY => 'category',
-    xPDOTransport::PRESERVE_KEYS => false,
-    xPDOTransport::UPDATE_OBJECT => true,
-    xPDOTransport::RELATED_OBJECTS => false,
-    /*xPDOTransport::RELATED_OBJECT_ATTRIBUTES => array (
-        'Snippets' => array(
-            xPDOTransport::PRESERVE_KEYS => false,
-            xPDOTransport::UPDATE_OBJECT => true,
-            xPDOTransport::UNIQUE_KEY => 'name',
-        ),
-    ),*/
-);
 $vehicle = $builder->createVehicle($category,$attr);
 $vehicle->resolve('file',array(
     'source' => $sources['source_core'],

@@ -36,7 +36,7 @@ if ($cdo instanceof ChangeDotOrg) {
 
   // We're gonna need the Petition ID 
   $petitionId = $modx->getOption('changedotorg_petition_id');
-  if(!petitionId) {
+  if(!petitionId || empty($petitionId)) {
     $url = $modx->getOption('petitionUrl',$scriptProperties,$modx->getOption('changedotorg_petition_url'));
     if(empty($url)) return 'Petition URL is required in system settings to get the Petition ID';
     $petitionId = $cdo->getPetitionId($url,$apiKey);
