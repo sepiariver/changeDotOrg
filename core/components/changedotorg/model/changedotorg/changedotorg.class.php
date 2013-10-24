@@ -61,12 +61,14 @@ class ChangeDotOrg {
      */
     public function getPetitionData($id, $apiKey, $requested = 'signatures', $cacheExpires = '7200') {
         /* Attempt to get from cache */
+        $cacheId = $requested . '.' . $id;
         $cacheOptions = array(
           xPDO::OPT_CACHE_HANDLER => $this->modx->getOption('cache_handler'),
           xPDO::OPT_CACHE_KEY => $this->modx->getOption('changedotorg_cache_key',null,'changedotorg'),
           xPDO::OPT_CACHE_EXPIRES => $cacheExpires,
         );
-        $data = $this->modx->getCacheManager()->get($requested, $cacheOptions);
+
+        $data = $this->modx->getCacheManager()->get($cacheId, $cacheOptions);
 
         if (empty($data)) {
           $apiUrl = 'https://api.change.org/v1/petitions/' 
@@ -80,7 +82,7 @@ class ChangeDotOrg {
           $data = $this->modx->fromJSON($response);
 
           /* Write to cache again */
-          $this->modx->cacheManager->set($requested, $data, $cacheExpires, $cacheOptions);
+          $this->modx->cacheManager->set($cacheId, $data, $cacheExpires, $cacheOptions);
         }
 
         return $data;
