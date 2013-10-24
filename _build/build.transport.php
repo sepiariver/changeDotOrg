@@ -47,16 +47,12 @@ $root = dirname(dirname(__FILE__)).'/';
 $sources= array (
     'root' => $root,
     'build' => $root .'_build/',
-    'events' => $root . '_build/events/',
-    'resolvers' => $root . '_build/resolvers/',
     'data' => $root . '_build/data/',
     'source_core' => $root.'core/components/'.PKG_NAME_LOWER,
-    'source_assets' => $root.'assets/components/'.PKG_NAME_LOWER,
-    'plugins' => $root.'core/components/'.PKG_NAME_LOWER.'/elements/plugins/',
     'snippets' => $root.'core/components/'.PKG_NAME_LOWER.'/elements/snippets/',
-    'lexicon' => $root . 'core/components/'.PKG_NAME_LOWER.'/lexicon/',
+    'chunks' => $root.'core/components/'.PKG_NAME_LOWER.'/elements/chunks/',
     'docs' => $root.'core/components/'.PKG_NAME_LOWER.'/docs/',
-    'model' => $root.'core/components/'.PKG_NAME_LOWER.'/model/',
+    'model' => $root.'core/components/'.PKG_NAME_LOWER.'/model/'.PKG_NAME_LOWER.'/',
 );
 
 $modx->loadClass('transport.modPackageBuilder','',false, true);
@@ -64,7 +60,7 @@ $builder = new modPackageBuilder($modx);
 $builder->directory = $targetDirectory;
 $builder->createPackage(PKG_NAME_LOWER,PKG_VERSION,PKG_RELEASE);
 $builder->registerNamespace(PKG_NAME_LOWER,false,true,'{core_path}components/'.PKG_NAME_LOWER.'/');
-$modx->getService('lexicon','modLexicon');
+
 
 /* create category */
 $category= $modx->newObject('modCategory');
@@ -102,6 +98,14 @@ foreach ($snippets as $snippet) {
 $modx->log(modX::LOG_LEVEL_INFO,'Packaged in '.count($snippets).' snippets.'); flush();
 unset($snippets,$snippet,$attributes);
 
+/* add chunks */
+$chunks = include $sources['data'].'transport.chunks.php';
+if (is_array($chunks)) {
+    $category->addMany($chunks,'Chunks');
+} else { $modx->log(modX::LOG_LEVEL_FATAL,'Adding chunks failed.'); }
+$modx->log(modX::LOG_LEVEL_INFO,'Packaged in '.count($chunks).' chunks.'); flush();
+unset($chunks);
+
 /* vehicle */
 $attr = array(
     xPDOTransport::UNIQUE_KEY => 'category',
@@ -109,6 +113,11 @@ $attr = array(
     xPDOTransport::UPDATE_OBJECT => true,
     xPDOTransport::RELATED_OBJECTS => false,
     xPDOTransport::RELATED_OBJECT_ATTRIBUTES => array (
+        'Chunks' => array(
+            xPDOTransport::PRESERVE_KEYS => false,
+            xPDOTransport::UPDATE_OBJECT => true,
+            xPDOTransport::UNIQUE_KEY => 'name',
+        ),
         'Snippets' => array(
             xPDOTransport::PRESERVE_KEYS => false,
             xPDOTransport::UPDATE_OBJECT => true,
