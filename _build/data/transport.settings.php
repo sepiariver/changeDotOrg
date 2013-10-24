@@ -19,7 +19,7 @@ foreach ($s as $key => $value) {
     $name = str_replace('_',' ',strtoupper($key));
 
     if ($key === 'changedotorg_api_key') $desc = 'Required to access change.org petition data at all.';
-    elseif ($key === 'changedotorg_petition_url') $desc = 'Required to get petition data. Can also be set per snippet call using the &petitionUrl property.';
+    elseif ($key === 'changedotorg_petition_url') $desc = 'Required to get petition data.';
     else $desc = '';
 
     $settings[$key] = $modx->newObject('modSystemSetting');
