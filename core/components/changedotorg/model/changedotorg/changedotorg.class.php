@@ -36,7 +36,6 @@ class ChangeDotOrg {
      */
     public $debug = false;
 
-    public $apiKey = $modx->getOption('changedotorg_api_key');
     /**
      * @param \modX $modx
      * @param array $config
@@ -62,17 +61,16 @@ class ChangeDotOrg {
      * Grab response data (from cache if possible).
      * @return array|mixed
      */
-    public function getPetitionData($requested = 'signatures', $cacheExpires = 7200) {
+    public function getPetitionData($id, $apiKey, $requested = 'signatures', $cacheExpires = '7200') {
         /* Attempt to get from cache */
         $cacheOptions = array(
-          xPDO::OPT_CACHE_HANDLER => $modx->getOption('cache_handler'),
-          xPDO::OPT_CACHE_KEY => $modx->getOption('changedotorg_cache_key',null,'changedotorg'),
+          xPDO::OPT_CACHE_HANDLER => $this->modx->getOption('cache_handler'),
+          xPDO::OPT_CACHE_KEY => $this->modx->getOption('changedotorg_cache_key',null,'changedotorg'),
           xPDO::OPT_CACHE_EXPIRES => $cacheExpires,
         );
         $data = $this->modx->getCacheManager()->get($requested, $cacheOptions);
 
         if (empty($data)) {
-          $id = $this->getPetitionId($modx->getOption('changedotorg_petition_url'));
           $apiUrl = 'https://api.change.org/v1/petitions/' 
             . $id 
             . '/'
@@ -81,9 +79,10 @@ class ChangeDotOrg {
             . $apiKey;
             
           $response = file_get_contents($apiUrl);
-          $data = $modx->fromJSON($response);
-            /* Write to cache again */
-          $this->modx->cacheManager->set($requested, $data, $cacheOptions);
+          $data = $this->modx->fromJSON($response);
+
+          /* Write to cache again */
+          $this->modx->cacheManager->set($requested, $data, $cacheExpires, $cacheOptions);
         }
 
         return $data;
@@ -92,52 +91,53 @@ class ChangeDotOrg {
      * Grab petitionId.
      * @return string
      */
-    public function getPetitionId($url) {
-      //First check if the setting exists
-      $setting = $modx->getObject('modSystemSetting', 'changedotorg_petition_id');
-      // Create the System Setting if it doesn't exist
-      if (!$setting) {
-        $newSetting = $modx->newObject('modSystemSetting');
-        $newSetting->set('key', 'changedotorg_petition_id');
-        $newSetting->set('xtype', 'textfield');
-        $newSetting->set('namespace', 'changedotorg');
-        $newSetting->set('area', 'Petition');
+    public function getPetitionId($url, $apiKey) {
+        //First check if the setting exists
+        $setting = $this->modx->getObject('modSystemSetting', 'changedotorg_petition_id');
+
+        // Create the System Setting if it doesn't exist
+        if (!$setting) {
+            $newSetting = $this->modx->newObject('modSystemSetting');
+            $newSetting->set('key', 'changedotorg_petition_id');
+            $newSetting->set('xtype', 'textfield');
+            $newSetting->set('namespace', 'changedotorg');
+            $newSetting->set('area', 'Petition');
  
-        $newSetting->save();
-        $setting = $modx->getObject('modSystemSetting', 'changedotorg_petition_id');
-      }
+            $newSetting->save();
+            $setting = $this->modx->getObject('modSystemSetting', 'changedotorg_petition_id');
+        }
+        
+        $petitionId = $setting->get('value');
+        if(empty($petitionId)) {
+            // API requirements
+            $apiUrl = 'https://api.change.org/v1/petitions/get_id';
+    
+            // Build query
+            $params = array(
+                'api_key' => $apiKey,
+                'petition_url' => $url,
+            );
+            $query = http_build_query($params);
+    
+            // Request
+            $requestUrl = "$apiUrl?$query";
 
-      // API requirements
-      $apiUrl = 'https://api.change.org/v1/petitions/get_id';
-      $petitionUrl = $modx->getOption('changeorg_petition_url',null,'');
-      if (!$petitionUrl) return false;
+            // Response
+            $response = file_get_contents($requestUrl);
+            $petition = $this->modx->fromJSON($response);
     
-      // Build query
-      $params = array(
-        'api_key' => $apiKey,
-        'petition_url' => $petitionUrl
-      );
-      $query = http_build_query($params);
+            // Get petition ID
+            $petitionId = $petition['petition_id'];
     
-      // Request
-      $requestUrl = "$apiUrl?$query";
-    
-      // Response
-      $response = file_get_contents($requestUrl);
-      $petition = $modx->fromJSON($response);
-    
-      // Get petition ID
-      $petitionId = $petition['petition_id'];
-    
-      // Save it in System Setting
-      $setting->set('value', $petitionId);
-      $setting->save();
+            // Save it in System Setting
+            $setting->set('value', $petitionId);
+            $setting->save();
      
-      // Clear the cache:
-      $cacheRefreshOptions =  array( 'system_settings' => array() );
-      $modx->cacheManager->refresh($cacheRefreshOptions);       
-
-      return $petitionId;
+            // Clear the cache:
+            $cacheRefreshOptions =  array( 'system_settings' => array() );
+            $this->modx->cacheManager->refresh($cacheRefreshOptions);       
+        }
+        return $petitionId;
     }
 
     /**
