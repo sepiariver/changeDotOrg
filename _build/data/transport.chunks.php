@@ -18,7 +18,7 @@ $chunks[1]->fromArray(array(
 ));
 
 $chunks[2]= $modx->newObject('modChunk');
-$chunks[3]->fromArray(array(
+$chunks[2]->fromArray(array(
     'id' => 3,
     'name' => 'changeDotOrg-updatesTpl',
     'description' => 'The tpl chunk for snippet calls to get updates data. Duplicate this to override it.',
