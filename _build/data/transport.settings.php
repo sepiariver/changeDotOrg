@@ -1,10 +1,12 @@
 <?php
 
 $s = array(
-    'admin_groups' => 'Administrator',
-    'clear_cache' => true,
-    'vertical_tabs' => false,
-    'google_fonts_api_key' => ''
+    'changedotorg_api_key' => '',
+    'changedotorg_api_secret' => '',
+    'changedotorg_cache_expires' => '7200',
+    'changedotorg_cache_key' => 'changedotorg',
+    'changedotorg_petition_id' => '',
+    'changedotorg_petition_url' => '',
 );
 
 $settings = array();
@@ -14,17 +16,19 @@ foreach ($s as $key => $value) {
     elseif (is_bool($value)) { $type = 'combo-boolean'; }
     else { $type = 'textfield'; }
 
-    $parts = explode('.',$key);
-    if (count($parts) == 1) { $area = 'Default'; }
-    else { $area = $parts[0]; }
-    
-    $settings['clientconfig.'.$key] = $modx->newObject('modSystemSetting');
-    $settings['clientconfig.'.$key]->set('key', 'clientconfig.'.$key);
-    $settings['clientconfig.'.$key]->fromArray(array(
+    $name = str_replace('_',' ',strtoupper($key));
+
+    if ($key === 'changedotorg_api_key') $desc = 'Required to access change.org petition data at all.';
+    else $desc = '';
+
+    $settings[$key] = $modx->newObject('modSystemSetting');
+    $settings[$key]->set('key', $key);
+    $settings[$key]->fromArray(array(
         'value' => $value,
         'xtype' => $type,
-        'namespace' => 'clientconfig',
-        'area' => $area
+        'namespace' => 'changedotorg',
+        'name' => 'Change.org' . $name,
+        'description' => $desc,
     ));
 }
 
