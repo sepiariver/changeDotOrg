@@ -53,8 +53,6 @@ class ChangeDotOrg {
 
         $modelPath = $this->config['modelPath'];
         $this->modx->addPackage('changedotorg',$modelPath);
-        
-        $this->debug = (bool)$this->modx->getOption('changedotorg.debug',null,false);
     }
 
     /**
@@ -100,8 +98,7 @@ class ChangeDotOrg {
             $newSetting = $this->modx->newObject('modSystemSetting');
             $newSetting->set('key', 'changedotorg_petition_id');
             $newSetting->set('xtype', 'textfield');
-            $newSetting->set('namespace', 'changedotorg');
-            $newSetting->set('area', 'Petition');
+            $newSetting->set('area', 'changedotorg');
  
             $newSetting->save();
             $setting = $this->modx->getObject('modSystemSetting', 'changedotorg_petition_id');
