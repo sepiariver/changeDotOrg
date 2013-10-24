@@ -100,11 +100,18 @@ unset($snippets,$snippet,$attributes);
 
 /* add chunks */
 $chunks = include $sources['data'].'transport.chunks.php';
-if (is_array($chunks)) {
-    $category->addMany($chunks,'Chunks');
-} else { $modx->log(modX::LOG_LEVEL_FATAL,'Adding chunks failed.'); }
+if (!is_array($chunks)) { $modx->log(modX::LOG_LEVEL_FATAL,'Adding chunks failed.'); }
+$attributes= array(
+    xPDOTransport::UNIQUE_KEY => 'name',
+    xPDOTransport::PRESERVE_KEYS => false,
+    xPDOTransport::UPDATE_OBJECT => true,
+);
+foreach ($chunks as $chunk) {
+    $vehicle = $builder->createVehicle($chunk, $attributes);
+    $builder->putVehicle($vehicle);
+}
 $modx->log(modX::LOG_LEVEL_INFO,'Packaged in '.count($chunks).' chunks.'); flush();
-unset($chunks);
+unset($chunks,$chunk,$attributes);
 
 /* vehicle */
 $attr = array(
