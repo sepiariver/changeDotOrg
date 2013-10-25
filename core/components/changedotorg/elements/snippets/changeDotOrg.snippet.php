@@ -4,11 +4,17 @@
  *
  * Returns changeDotOrg petition data. 
  *
- * [[changeDotOrg]]
- * returns: signature count.
- *
- * [[changeDotOrg?from=`reasons`]]
- * returns: 
+ * First get a Change.org API key here: https://www.change.org/developers/api-key
+ * 
+ * Then enter your API key and Petition URL in the respective System Settings and you're ready to call the Snippet into your content or template, like this:
+ * 
+ * [[changeDotOrg]] » returns the signature count by default, and caches for 2 hours (you can change cache expires in System Settings)
+ * 
+ * [[changeDotOrg? &from=`reasons` &offset=`2` &limit=`3`]] » returns the 3rd - 5th most recent "Reasons" posted by signers.
+ * 
+ * [[changeDotOrg? &from=`reasons` &random=`1` &tpl=`reasonTpl`]] » returns one reason object randomly selected from the API response data, output via the Chunk.
+ * 
+ * 3 default chunks are included. They should be duplicated and defined in the Snippet properties to customize the output.
  * 
  */
 

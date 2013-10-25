@@ -1,5 +1,6 @@
 ++++++++++++++++++++++++++++++++
-++   changeDotOrg 1.0.0-beta1 ++
-++   Released on 2013-10-23   ++
+++   changeDotOrg 1.0.1-beta1 ++
+++   Released on 2013-10-25   ++
 ++++++++++++++++++++++++++++++++
-Initial beta release
+Modified snippet comments to include better docs.
+Initial beta release.
